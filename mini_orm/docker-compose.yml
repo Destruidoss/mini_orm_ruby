@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    build: . 
+    command: /bin/bash -l -c "echo 'Ambiente Ruby e RVM pronto!' && ruby -v && gem list bundler"
+    volumes:
+      - .:/app
+    working_dir: /app
+    ports:
+      - "3000:3000" 
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgres://user:password@db:5432/tododb
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: joaonatal
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: tododb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data 
+
+volumes:
+  postgres_data:
