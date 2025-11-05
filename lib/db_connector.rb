@@ -7,7 +7,7 @@ module DBConnector
     return @@connection if @@connection
 
     @@connection = PG.connect(
-      host: 'localhost',
+      host: 'LOCALHOST',
       port: 5432,
       dbname: 'tododb',
       user: 'joaonatal',

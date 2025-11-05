@@ -90,7 +90,11 @@ docker run -ti --rm \
   postgres:latest
 
   docker run -ti --rm  --name mypostgres   -e POSTGRES_USER=joaonatal   -e POSTGRES_PASSWORD=123456   -e POSTGRES_DB=mydb   -p 5432:5432   -v ./pg_data:/var/lib/postgresql   postgres:latest
-
+  #./pg_data:/var/lib/postgresql 
+  # -p 5432:5432 
+  #observe esses dois acima, o caminho da pasta nas versões 18+ do postgres agora é assim.
+  #a porta precisa ser startada para o containeira interno e externo.
+  #ficara 5432 interno e 5432 externo.
 
 
 docker start nomecontainer
