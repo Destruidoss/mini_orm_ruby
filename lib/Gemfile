@@ -1,0 +1,6 @@
+source 'https://rubygems.org'
+
+gem 'pg'          #conectar ao PostgreSQL
+gem 'sinatra'     # TEstes
+gem 'puma'        # Servidor web para o Heroku
+gem 'json'        # Para formatar a saída como JSON

@@ -4,7 +4,7 @@ require_relative 'db_connector'
 require_relative 'attr_accessor_man'
 
 # == BaseRecord: Mini-ORM para PostgreSQL ==
-# Fornece CRUD com migrações automáticas e soft delete
+# given 
 class BaseRecord
   extend AttrAccessorMan
   attr_accessor :id
@@ -25,11 +25,7 @@ class BaseRecord
     if @id.nil?
       # INSERT
       placeholders = (1..values.size).map { |i| "$#{i}" }.join(", ")
-      sql = <<~SQL
-        INSERT INTO #{self.class.tabela} (#{columns.join(', ')})
-        VALUES (#{placeholders})
-        RETURNING id;
-      SQL
+      sql = "INSERT INTO #{self.class.tabela} (#{columns.join(', ')}) VALUES (#{placeholders}) RETURNING id;"
 
       result = conn.exec_params(sql, values)
       self.id = result[0]['id'].to_i
@@ -38,11 +34,7 @@ class BaseRecord
       # UPDATE
       set_clause = columns.map.with_index(1) { |c, i| "#{c} = $#{i}" }.join(", ")
       set_clause += ", updated_at = NOW()"
-      sql = <<~SQL
-        UPDATE #{self.class.tabela}
-        SET #{set_clause}
-        WHERE id = $#{values.size + 1};
-      SQL
+      sql = "UPDATE #{self.class.tabela} SET #{set_clause} WHERE id = $#{values.size + 1};"
 
       conn.exec_params(sql, values << id)
       puts "Registro atualizado (id #{id})."
