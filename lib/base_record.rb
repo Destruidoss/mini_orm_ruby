@@ -3,20 +3,20 @@ require 'pg'
 require_relative 'db_connector'
 require_relative 'attr_accessor_man'
 
-# == BaseRecord: Mini-ORM para PostgreSQL ==
-# given 
+# == BaseRecord: Mini-ORM for PostgreSQL ==
+# Provides CRUD with automatic migrations and soft delete.
 class BaseRecord
   extend AttrAccessorMan
   attr_accessor :id
 
-  # === Inicialização ===
+  # === INITIALIZE MAIN ===
   def initialize(attrs)
     attrs.each { |key, value| send("#{key}=", value) }
   end
 
-  # === Persistência ===
+  # === Persistency in datas like selects for consults and create tables and updates===
   def save!
-    raise ArgumentError, "Atributos ou tabela faltando" if self.class.atributos.nil? || self.class.tabela.nil?
+    raise ArgumentError, "Atributes or tables missing" if self.class.atributos.nil? || self.class.tabela.nil?
 
     conn   = DBConnector.connection
     columns = self.class.atributos.keys
@@ -101,15 +101,15 @@ class BaseRecord
     puts "Registro apagado (soft delete)."
   end
 
-  # === Migração ===
+  # === Migrate ===
   def self.migrate!
     raise ArgumentError, "Atributos faltando" if atributos.nil?
     raise ArgumentError, "Tabela faltando" if tabela.nil?
 
     conn = DBConnector.connection
 
-    # Campos do usuário
-    campos = atributos.map do |nome, tipo|
+    # field of user
+    field = atributos.map do |nome, tipo|
       tipo_sql = case tipo
                  when :string then "VARCHAR(255)"
                  when :int then "INTEGER"
@@ -119,31 +119,28 @@ class BaseRecord
       "#{nome} #{tipo_sql}"
     end.join(", ")
 
-    # Campos internos
-    campos += ", created_at TIMESTAMP DEFAULT NOW()"
-    campos += ", updated_at TIMESTAMP DEFAULT NOW()"
-    campos += ", deleted_at TIMESTAMP"
+    # FIELDS INTERN 
+    field += ", updated_at TIMESTAMP DEFAULT NOW()"
+    field += ", deleted_at TIMESTAMP"
 
-    # Cria tabela
-    sql = "CREATE TABLE IF NOT EXISTS #{tabela} (id SERIAL PRIMARY KEY, #{campos});"
+    # CREATE THE TABLE NECESSARY FOR NEW FIELDS
+    sql = "CREATE TABLE IF NOT EXISTS #{tabela} (id SERIAL PRIMARY KEY, #{field});"
     conn.exec(sql)
 
-    # Adiciona colunas novas
+    # ADD Columns new
     atributos.each { |nome, tipo| add_column!(tabela, nome, tipo) }
     add_column!(tabela, :created_at, :datetime)
     add_column!(tabela, :updated_at, :datetime)
     add_column!(tabela, :deleted_at, :datetime)
 
-    puts "Migração concluída para #{tabela}."
+    puts "Migrate finished for #{tabela}."
   end
 
-  # === Migração: Colunas ===
+  # === SHOW COLUNS EXISTING IN DATABASE ===
   def self.column_exists?(table, column)
     conn = DBConnector.connection
-    sql = <<~SQL
-      SELECT 1 FROM information_schema.columns
-      WHERE table_name = $1 AND column_name = $2;
-    SQL
+    sql = "SELECT 1 FROM information_schema.columns WHERE table_name = $1 AND column_name = $2;"
+   
     result = conn.exec_params(sql, [table.to_s, column.to_s])
     result.ntuples > 0
   end
@@ -160,10 +157,10 @@ class BaseRecord
 
     sql = "ALTER TABLE #{table} ADD COLUMN #{column} #{sql_type};"
     conn.exec(sql)
-    puts "Coluna #{column} adicionada em #{table}."
+    puts "Column #{column} add in table #{table}."
   end
 
-  # === Nome da Tabela ===
+  # === Name of table ===
   def self.tabela(name = nil)
     @tabela = name unless name.nil?
     @tabela
