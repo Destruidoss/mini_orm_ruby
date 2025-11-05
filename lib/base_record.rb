@@ -16,59 +16,59 @@ class BaseRecord
 
   # === Persistency in datas like selects for consults and create tables and updates===
   def save!
-    raise ArgumentError, "Atributes or tables missing" if self.class.atributos.nil? || self.class.tabela.nil?
+    raise ArgumentError, "Atributes or tables missing" if self.class.atributes.nil? || self.class.table.nil?
 
     conn   = DBConnector.connection
-    columns = self.class.atributos.keys
+    columns = self.class.atributes.keys
     values  = columns.map { |col| send(col) }
 
     if @id.nil?
       # INSERT
       placeholders = (1..values.size).map { |i| "$#{i}" }.join(", ")
-      sql = "INSERT INTO #{self.class.tabela} (#{columns.join(', ')}) VALUES (#{placeholders}) RETURNING id;"
+      sql = "INSERT INTO #{self.class.table} (#{columns.join(', ')}) VALUES (#{placeholders}) RETURNING id;"
 
       result = conn.exec_params(sql, values)
       self.id = result[0]['id'].to_i
-      puts "Registro salvo com id #{id}."
+      puts "Registry saved with id #{id}."
     else
       # UPDATE
       set_clause = columns.map.with_index(1) { |c, i| "#{c} = $#{i}" }.join(", ")
       set_clause += ", updated_at = NOW()"
-      sql = "UPDATE #{self.class.tabela} SET #{set_clause} WHERE id = $#{values.size + 1};"
+      sql = "UPDATE #{self.class.table} SET #{set_clause} WHERE id = $#{values.size + 1};"
 
       conn.exec_params(sql, values << id)
-      puts "Registro atualizado (id #{id})."
+      puts "Registry updated with (id #{id})."
     end
   end
 
-  # === Criação Rápida ===
+  # === Create using save! function ===
   def self.create(attrs)
     new(attrs).tap { |p| p.save! }
   end
 
-  # === Definição de Atributos ===
-  def self.atributos(attrs = nil)
+  # === Defining Atributes ===
+  def self.atributes(attrs = nil)
     unless attrs.nil?
-      @atributos = attrs
+      @atributes = attrs
       my_attr_accessor(*attrs.keys)
     end
-    @atributos
+    @atributes
   end
 
-  # === Busca ===
+  # === Search ===
   def self.find!(id)
-    raise ArgumentError, "Atributos faltando" if atributos.nil?
-    raise ArgumentError, "Tabela faltando" if tabela.nil?
+    raise ArgumentError, "atributes missing" if atributes.nil?
+    raise ArgumentError, "table missing" if table.nil?
 
     conn = DBConnector.connection
-    cols = atributos.keys.join(', ')
-    sql = "SELECT #{cols}, id FROM #{tabela} WHERE id = $1 AND deleted_at IS NULL LIMIT 1;"
+    cols = atributes.keys.join(', ')
+    sql = "SELECT #{cols}, id FROM #{table} WHERE id = $1 AND deleted_at IS NULL LIMIT 1;"
     result = conn.exec_params(sql, [id])
 
-    raise StandardError, "Não encontrado" if result.ntuples.zero?
+    raise StandardError, "Not found" if result.ntuples.zero?
 
     row = result[0]
-    attrs = row.slice(*atributos.keys.map(&:to_s)).transform_keys(&:to_sym)
+    attrs = row.slice(*atributes.keys.map(&:to_s)).transform_keys(&:to_sym)
     attrs[:id] = row['id'].to_i
     new(attrs)
   end
@@ -81,11 +81,11 @@ class BaseRecord
 
   def self.todos
     conn = DBConnector.connection
-    sql = "SELECT * FROM #{tabela} WHERE deleted_at IS NULL ORDER BY id;"
+    sql = "SELECT * FROM #{table} WHERE deleted_at IS NULL ORDER BY id;"
     result = conn.exec(sql)
 
     result.map do |row|
-      attrs = row.slice(*atributos.keys.map(&:to_s)).transform_keys(&:to_sym)
+      attrs = row.slice(*atributes.keys.map(&:to_s)).transform_keys(&:to_sym)
       attrs[:id] = row['id'].to_i
       new(attrs)
     end
@@ -96,44 +96,44 @@ class BaseRecord
     return if id.nil?
 
     conn = DBConnector.connection
-    sql = "UPDATE #{tabela} SET deleted_at = NOW() WHERE id = $1;"
+    sql = "UPDATE #{table} SET deleted_at = NOW() WHERE id = $1;"
     conn.exec_params(sql, [id])
-    puts "Registro apagado (soft delete)."
+    puts "Registry deleted (soft delete)."
   end
 
   # === Migrate ===
   def self.migrate!
-    raise ArgumentError, "Atributos faltando" if atributos.nil?
-    raise ArgumentError, "Tabela faltando" if tabela.nil?
+    raise ArgumentError, "atributes missing" if atributes.nil?
+    raise ArgumentError, "table missing" if table.nil?
 
     conn = DBConnector.connection
 
     # field of user
-    field = atributos.map do |nome, tipo|
-      tipo_sql = case tipo
+    field = atributes.map do |name, type|
+      type_sql = case type
                  when :string then "VARCHAR(255)"
                  when :int then "INTEGER"
                  when :datetime then "TIMESTAMP"
-                 else raise NotImplementedError, "Tipo #{tipo} não suportado"
+                 else raise NotImplementedError, "Type #{type} not suported"
                  end
-      "#{nome} #{tipo_sql}"
+      "#{name} #{type_sql}"
     end.join(", ")
 
-    # FIELDS INTERN 
+    # FIELDS created for news fields and functions
     field += ", updated_at TIMESTAMP DEFAULT NOW()"
     field += ", deleted_at TIMESTAMP"
 
     # CREATE THE TABLE NECESSARY FOR NEW FIELDS
-    sql = "CREATE TABLE IF NOT EXISTS #{tabela} (id SERIAL PRIMARY KEY, #{field});"
+    sql = "CREATE TABLE IF NOT EXISTS #{table} (id SERIAL PRIMARY KEY, #{field});"
     conn.exec(sql)
 
     # ADD Columns new
-    atributos.each { |nome, tipo| add_column!(tabela, nome, tipo) }
-    add_column!(tabela, :created_at, :datetime)
-    add_column!(tabela, :updated_at, :datetime)
-    add_column!(tabela, :deleted_at, :datetime)
+    atributes.each { |name, type| add_column!(table, name, type) }
+    add_column!(table, :created_at, :datetime)
+    add_column!(table, :updated_at, :datetime)
+    add_column!(table, :deleted_at, :datetime)
 
-    puts "Migrate finished for #{tabela}."
+    puts "Migrate finished for #{table}."
   end
 
   # === SHOW COLUNS EXISTING IN DATABASE ===
@@ -161,8 +161,8 @@ class BaseRecord
   end
 
   # === Name of table ===
-  def self.tabela(name = nil)
-    @tabela = name unless name.nil?
-    @tabela
+  def self.table(name = nil)
+    @table = name unless name.nil?
+    @table
   end
 end

@@ -13,7 +13,7 @@ module DBConnector
       user: 'joaonatal',
       password: '123456'
     )
-    puts "[DBConnector] Conectado ao PostgreSQL!"
+    puts "[DBConnector] Connected to PostgreSQL!"
     @@connection
   end
 
@@ -21,7 +21,7 @@ module DBConnector
     if @@connection
       @@connection.close
       @@connection = nil
-      puts "[DBConnector] Conexão encerrada."
+      puts "[DBConnector] Connection closed."
     end
   end
 end

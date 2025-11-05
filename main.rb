@@ -1,8 +1,8 @@
 #main.rb archive principal for request operations and tests
-require_relative 'lib/pessoa'
+require_relative 'lib/people'
 # === Execução do programa inteiro ===
-Pessoa.migrate!
-Pessoa.menu
+People.migrate!
+People.menu
 
 # === Execução do programa inteiro porem inserindo manualmente===
 # criapessoa = Pessoa.new(name: "Maria", 
