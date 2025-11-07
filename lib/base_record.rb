@@ -79,7 +79,7 @@ class BaseRecord
     nil
   end
 
-  def self.todos
+  def self.all
     conn = DBConnector.connection
     sql = "SELECT * FROM #{table} WHERE deleted_at IS NULL ORDER BY id;"
     result = conn.exec(sql)
@@ -114,6 +114,7 @@ class BaseRecord
                  when :string then "VARCHAR(255)"
                  when :int then "INTEGER"
                  when :datetime then "TIMESTAMP"
+                 when :float then "NUMERIC(25,10)"
                  else raise NotImplementedError, "Type #{type} not suported"
                  end
       "#{name} #{type_sql}"
