@@ -74,13 +74,43 @@ class BaseRecord
     new(attrs)
   end
 
-  def find_by(*args, )
-
   def self.find(id)
     find!(id)
   rescue
     nil
   end
+
+  def self.find_by(**args)
+    raise ArgumentError, "atributes missing, try again!" if args.nil?
+    raise ArgumentError, "table missing" if table.nil?
+
+    conn = DBConnector.connection
+    cols = args.keys.map.with_index { |key, i| "#{key} = $#{i + 1}" }.join(" AND ")
+    sql = "SELECT * FROM #{table} WHERE #{cols}"
+    result = conn.exec(sql, args.values.each { |x| p x})
+
+  end
+
+# def self.find_by(**args)
+#   raise ArgumentError, "attributes missing, try again!" if args.nil? || args.empty?
+#   raise ArgumentError, "table missing" if table.nil?
+
+#   conn = DBConnector.connection
+
+#   # Monta os placeholders para PostgreSQL: $1, $2, ...
+#   conditions = args.keys.map.with_index { |key, i| "#{key} = $#{i + 1}" }.join(" AND ")
+#   values = args.values
+
+#   sql = "SELECT * FROM #{table} WHERE #{conditions} LIMIT 1"
+
+#   result = conn.exec(sql, values)
+
+#   return nil if result.ntuples == 0
+
+#   new(result[0])
+# end
+
+
 
   def self.all
     conn = DBConnector.connection

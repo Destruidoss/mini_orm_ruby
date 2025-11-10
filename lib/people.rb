@@ -88,6 +88,17 @@ class People < BaseRecord
       puts "ID not found."
     end
   end
+  
+#   def find_by(**args)
+#     raise ArgumentError, "atributes missing, try again!" if atributes.nil?
+#     raise ArgumentError, "table missing" if table.nil?
+
+#     conn = DBConnector.connection
+#     cols = atributes.map { |key, _| "#{key} = ?" }.join(" AND ")
+#     sql = "SELECT * FROM #{table} WHERE #{cols} LIMIT 1"
+#     result = conn.exec_params(sql, cols)
+#   end
+
 
   def self.update
     print "Person ID: "
