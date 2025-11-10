@@ -2,7 +2,7 @@
 require_relative 'lib/people'
 require_relative 'lib/product'
 # === Execução do programa inteiro ===
-# People.migrate!
+People.migrate!
 # People.menu_interface_people
 Product.migrate!
 Product.menu_interface_product

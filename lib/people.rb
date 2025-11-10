@@ -16,7 +16,7 @@ class People < BaseRecord
   def self.menu_interface_people
     loop do
       puts "\n" + "=" * 40
-      puts "      MINI-ORM - MANAGER"
+      puts "      MINI-ORM - MANAGER PEOPLE"
       puts "=" * 40
       puts "1 - register People"
       puts "2 - list all People in base"
@@ -33,7 +33,8 @@ class People < BaseRecord
       when "3" then find
       when "4" then update
       when "5" then delete
-      when "6"
+      when "6" 
+        
         puts "By! See you!"
         break
       else

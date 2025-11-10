@@ -35,9 +35,11 @@ class Product < BaseRecord
       when "6" 
         puts "By! See you!"
       People.menu_interface_people
-        break
+        
       else
         puts "option invalid!"
+        puts "By! See you!"
+        break
       end
     end
   end

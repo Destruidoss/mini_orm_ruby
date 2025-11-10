@@ -42,6 +42,7 @@ class BaseRecord
   end
 
   # === Create using save! function ===
+  #tap  show the result, after the execute
   def self.create(attrs)
     new(attrs).tap { |p| p.save! }
   end
@@ -72,6 +73,8 @@ class BaseRecord
     attrs[:id] = row['id'].to_i
     new(attrs)
   end
+
+  def find_by(*args, )
 
   def self.find(id)
     find!(id)
