@@ -15,7 +15,7 @@ class Product < BaseRecord
   def self.menu_interface_product
     loop do
       puts "\n" + "=" * 40
-      puts "      MINI-ORM - MANAGER"
+      puts "      MINI-ORM - MANAGER PRODUCT"
       puts "=" * 40
       puts "1 - register Product"
       puts "2 - list all Product in base"
@@ -23,7 +23,6 @@ class Product < BaseRecord
       puts "4 - update Product"
       puts "5 - Delete Product through ID"
       puts "6 - Go to menu People"
-      puts "7 - Exit"
       print "Make your choice between (1-6): "
       option = gets.chomp
 
@@ -35,6 +34,7 @@ class Product < BaseRecord
       when "5" then delete
       when "6" 
         puts "By! See you!"
+      People.menu_interface_people
         break
       else
         puts "option invalid!"
@@ -106,4 +106,5 @@ class Product < BaseRecord
     puts "Updated with success!"
 
   end
+end
 end
