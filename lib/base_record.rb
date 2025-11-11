@@ -85,10 +85,26 @@ class BaseRecord
 
     conn = DBConnector.connection
     cols = args.keys.map.with_index { |key, value| "#{key} = $#{value + 1}"}.join(" AND ")
+
     val = args.values
     sql = "SELECT * FROM #{table} WHERE #{cols} LIMIT 1"
     result = conn.exec_params(sql, val)
-    return result.first
+    return nil if result.ntuples == 0
+    row = result.first
+    attrs = row.slice(*atributes.keys.map(&:to_s)).transform_keys(&:to_sym)
+    attrs[:id] = row['id'].to_i if row['id']
+      new(attrs)
+  end
+
+  def self.where(**args)
+    raise ArgumentError, "Atributes not found, try again"
+    conn = DBConnector.connection
+
+    cols = args.keys.map.with_index { |key, value| "#{key} = $#{value}"}.join(" AND ")
+
+    val = args.values
+
+
   end
 
   def self.all
