@@ -81,30 +81,25 @@ class BaseRecord
   end
 
   def self.find_by(**args)
-    raise ArgumentError, "atributes missing, try again!" if args.empty?
-
-    conn = DBConnector.connection
-    cols = args.keys.map.with_index { |key, value| "#{key} = $#{value + 1}"}.join(" AND ")
-
-    val = args.values
-    sql = "SELECT * FROM #{table} WHERE #{cols} LIMIT 1"
-    result = conn.exec_params(sql, val)
-    return nil if result.ntuples == 0
-    row = result.first
-    attrs = row.slice(*atributes.keys.map(&:to_s)).transform_keys(&:to_sym)
-    attrs[:id] = row['id'].to_i if row['id']
-      new(attrs)
+    where(**args).first
+    # how to use: People.find_by(email: "a")
   end
 
   def self.where(**args)
-    raise ArgumentError, "Atributes not found, try again"
+    raise ArgumentError, "Atributes not found, try again" if args.empty?
     conn = DBConnector.connection
 
-    cols = args.keys.map.with_index { |key, value| "#{key} = $#{value}"}.join(" AND ")
-
+    cols = args.keys.map.with_index { |key, value| "#{key} = $#{value + 1}"}.join(" AND ")
     val = args.values
 
+    sql = "SELECT * FROM #{table} WHERE #{cols}"
+    result = conn.exec_params(sql, val)
 
+    result.map do |row|
+      attrs = row.slice(*atributes.keys.map(&:to_s)).transform_keys(&:to_sym)
+      attrs[:id] = row["id"].to_i if row["id"]
+      new(attrs)
+    end
   end
 
   def self.all
@@ -118,6 +113,21 @@ class BaseRecord
       new(attrs)
     end
   end
+
+  # def self.selected(*args)
+  #   raise ArgumentError, "Atributes not found, try again"
+
+  #   args
+  #   conn = DBConnector.connection
+  #   cols = args.map(&:to_s).join(", ")
+  #   sql = "SELECT #{cols}, id FROM #{table}"
+  #   result = conn.exec(sql)
+
+  #   result.map do |row|
+  #     attrs = row.slice(*args.keys.map(&:to_s)).transform_keys(&:to_sym)
+  #     attr
+  #   end
+  # end
 
   # === Soft Delete ===
   def self.delete(id)
